@@ -45,34 +45,16 @@ function AdmitanceComplexNums(g::Vector{Float64},
     return ComplexNums(r,x,z,g,b,y)
 end
 
-mutable struct Load
-    load_bus::Vector{Int64}
-    data::ComplexNums
-
-    function Load(load_bus::Vector{Int64}, 
-                  i::Vector{T},
-                  j::Vector{T},
-                  type::String) where T
-        new(
-            load_bus,
-            ComplexNums(i, j, type = type)
-        )
-    end
-end
 
 mutable struct Buses
     B::Vector{Int64}
     buses::Vector{Int64}
-    load::Load
+    capacitor_bank::Vector
 
     function Buses(buses::Vector{Int64}, 
-                   load_bus::Vector{Int64}, 
-                   i::Vector{T},
-                   j::Vector{T};
-                   type = "impedance") where T
+                   capacitor_bank::Vector) where T
         B = collect(1:length(buses))
-        load = Load(load_bus, i, j, type)
-        new(B, buses, load)
+        new(B, buses, capacitor_bank)
     end
 end
 
@@ -106,20 +88,33 @@ mutable struct Input
     lines::Lines
 
     function Input(buses::Vector{Int64},
-                   load_bus::Vector{Int64},
-                   i_load::Vector{T},
-                   j_load::Vector{T},
                    lines::Vector{Int64},
                    from::Vector{Int64},
                    to::Vector{Int64},
                    i_line::Vector{T},
                    j_line::Vector{T};
-                   type_load = "impedance",
+                   capacitor_bank::Vector = Any[],
                    type_line = "impedance") where T
         
         new(
-            Buses(buses, load_bus, i_load,j_load, type = type_load),
+            Buses(buses, capacitor_bank),
             Lines(lines, from, to, i_line,j_line, type = type_line)
         )
     end
+end
+
+mutable struct AlgorithmResults
+    V::Matrix
+    θ::Matrix
+    Δ::Matrix
+    gap::Vector
+end
+
+mutable struct Results
+    P::Matrix
+    Q::Matrix
+    S::Matrix
+    V::Vector
+    θ::Vector
+    algorithm_results::AlgorithmResults
 end
